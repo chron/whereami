@@ -30,7 +30,7 @@ async function getMessages(channel) {
 
   for await (const page of web.paginate('conversations.history', {
     channel,
-    oldest: DateTime.now().minus({ weeks: 6 }).toSeconds(),
+    oldest: DateTime.now().setZone('Pacific/Auckland').minus({ weeks: 6 }).toSeconds(),
     limit: 100 // per page
   })) {
     messages.push(...page.messages.filter(message => {

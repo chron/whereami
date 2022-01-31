@@ -1,5 +1,7 @@
 # where-am-i?
 
+"Production" site is at: https://sp-whereami.netlify.app
+
 An art project / useless novelty: using the Slack API, we can get all the messages posted to the `#where-am-i` channel in the last 6 weeks.  For each week we'll find one message per person — the most recent one if there are multiples — that has exactly 5 emoji in it.
 
 Then we show it all in a grid! Why? _Why not?_
