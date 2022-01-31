@@ -8,13 +8,10 @@ const DATE_FORMAT = 'W';
 const TOKEN = process.env.SLACK_TOKEN;
 const CHANNEL = process.env.SLACK_CHANNEL_ID;
 
-// Scopes needed:
-// users:read channels:history
-// Maybe later: channels:read emoji:read reactions:read
 async function getMessages(channel) {
   const web = new WebClient(TOKEN);
 
-  // emoji.list to get emoji
+  // For future:
   // conversations.list to get list of all channels
   // conversations.replies to get thread contents if thread_ts == ts (channel, ts)
 
@@ -43,7 +40,6 @@ async function getMessages(channel) {
     }).map(message => {
       const { user, ts, text } = message;
 
-      // reactions later maybe?
       const emojis = text.match(/:\w+:/g) || [];
       const filteredEmojis = emojis.filter(e => !e.match(/skin-tone/));
 
