@@ -11,12 +11,12 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter&display=swap" rel="stylesheet">
 </head>
 <body>
-  <h1>#where-am-i</h1>
+  <h1>#wordle-am-i</h1>
 
   <div class="emoji-grid">
     <div class="emoji-grid__header">Name</div>
     {% for weekNum in weeks %}
-      <div class="emoji-grid__header">Week {{ weekNum }}</div>
+      <div class="emoji-grid__header">{{ weekNum }}</div>
     {% endfor %}
 
     {% for user in slack %}
@@ -28,6 +28,9 @@
         <div class="emoji-grid__week">
           {% for e in week.emojis %}
             {%- parseEmoji emoji, e -%}
+            {%- if loop.index % 5 == 0 %}
+              <br>
+            {% endif -%}
           {% endfor %}
         </div>
       {% endfor %}

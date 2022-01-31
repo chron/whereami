@@ -20,10 +20,23 @@ module.exports = function(eleventyConfig) {
   eleventyConfig.addShortcode('parseEmoji', function(emoji, input) {
     const bareName = input.replace(/:/g, '');
 
+    let urlOrUnicodeString;
+
     if (emoji[bareName]) {
-      return `<img class="emoji" src="${emoji[bareName]}" alt="${bareName}">`;
+      if (emoji[bareName].match(/^alias:/)) {
+        let alias = emoji[bareName].replace(/^alias:/, '');
+        urlOrUnicodeString = emoji[alias] ?? emojiConvertor.replace_colons(`:${alias}:`)
+      } else {
+        urlOrUnicodeString = emoji[bareName];
+      }
     } else {
-      return emojiConvertor.replace_colons(input)
+      urlOrUnicodeString = emojiConvertor.replace_colons(input);
+    }
+
+    if (urlOrUnicodeString.match(/^http/)) {
+      return `<img class="emoji" src="${srcUrl}" alt="${bareName}">`;
+    } else {
+      return urlOrUnicodeString;
     }
   });
 }

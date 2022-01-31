@@ -4,7 +4,7 @@ const { sortBy } = require('lodash');
 const weeks = require('./weeks');
 
 const IGNORED_SUBTYPES = ['bot_message', 'channel_join', 'channel_leave', 'bot_add'];
-const DATE_FORMAT = 'W';
+const DATE_FORMAT = 'd LLL';
 const TOKEN = process.env.SLACK_TOKEN;
 const CHANNEL = process.env.SLACK_CHANNEL_ID;
 
@@ -30,7 +30,7 @@ async function getMessages(channel) {
 
   for await (const page of web.paginate('conversations.history', {
     channel,
-    oldest: DateTime.now().setZone('Pacific/Auckland').minus({ weeks: 6 }).toSeconds(),
+    oldest: DateTime.now().setZone('Pacific/Auckland').minus({ days: 6 }).toSeconds(),
     limit: 100 // per page
   })) {
     messages.push(...page.messages.filter(message => {
@@ -41,7 +41,7 @@ async function getMessages(channel) {
       const { user, ts, text } = message;
 
       const emojis = text.match(/:\w+:/g) || [];
-      const filteredEmojis = emojis.filter(e => !e.match(/skin-tone/));
+      const filteredEmojis = emojis.filter(e => e.match(/square/));
 
       return {
         user,
@@ -63,7 +63,7 @@ async function byDayAndUser({ messages, users }) {
   return Object.entries(users).map(([uid, name]) => {
     const userMessages = messages.filter(message => message.user === uid);
     const userWeeks = weeks.map(d => {
-      return userMessages.find(m => tsToDateString(m.ts) === d && m.emojis.length === 5)
+      return userMessages.find(m => tsToDateString(m.ts) === d && m.emojis.length >= 5)
     });
 
     if (userWeeks.every(d => !d)) { return null; }
