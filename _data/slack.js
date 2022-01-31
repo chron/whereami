@@ -23,7 +23,7 @@ async function getMessages(channel) {
   }
   const users = Object.fromEntries(sortBy(
     rawUsers.map(u => [u.id, u.real_name]),
-    u => u[1] // Sort alphabetically
+    u => u[1]?.toLowerCase() // Sort alphabetically
   ));
 
   const messages = [];
