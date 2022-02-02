@@ -1,36 +1,37 @@
 const { WebClient } = require('@slack/web-api');
 const { DateTime } = require('luxon');
 const { sortBy } = require('lodash');
-const weeks = require('./weeks');
+const CHANNELS = require('./channels');
 
 const IGNORED_SUBTYPES = ['bot_message', 'channel_join', 'channel_leave', 'bot_add'];
-const DATE_FORMAT = 'W';
 const TOKEN = process.env.SLACK_TOKEN;
-const CHANNEL = process.env.SLACK_CHANNEL_ID;
+const web = new WebClient(TOKEN);
 
-async function getMessages(channel) {
-  const web = new WebClient(TOKEN);
-
-  // For future:
-  // conversations.list to get list of all channels
-  // conversations.replies to get thread contents if thread_ts == ts (channel, ts)
-
+async function getUsers() {
   const rawUsers = [];
   for await (const page of web.paginate('users.list', {
     limit: 100,
   })) {
     rawUsers.push(...page.members);
   }
-  const users = Object.fromEntries(sortBy(
+  const users = sortBy(
     rawUsers.map(u => [u.id, u.real_name]),
-    u => u[1] // Sort alphabetically
-  ));
+    u => u[1]?.toLowerCase() // Sort alphabetically
+  );
 
+  return users;
+}
+
+// For future:
+// conversations.list to get list of all channels
+// conversations.replies to get thread contents if thread_ts == ts (channel, ts)
+
+async function getMessages(channel) {
   const messages = [];
 
   for await (const page of web.paginate('conversations.history', {
-    channel,
-    oldest: DateTime.now().setZone('Pacific/Auckland').minus({ weeks: 6 }).toSeconds(),
+    channel: channel.slackChannelId,
+    oldest: DateTime.now().setZone('Pacific/Auckland').minus(channel.dateFunc(channel.numPeriods)).toSeconds(),
     limit: 100 // per page
   })) {
     messages.push(...page.messages.filter(message => {
@@ -41,7 +42,7 @@ async function getMessages(channel) {
       const { user, ts, text } = message;
 
       const emojis = text.match(/:\w+:/g) || [];
-      const filteredEmojis = emojis.filter(e => !e.match(/skin-tone/));
+      const filteredEmojis = channel.emojiFilter ? emojis.filter(channel.emojiFilter) : emojis;
 
       return {
         user,
@@ -49,27 +50,46 @@ async function getMessages(channel) {
         text,
         emojis: filteredEmojis,
       }
-    }));
+    }).filter(m => !channel.messageFilter || channel.messageFilter(m)));
   }
 
-  return { messages, users };
+  return messages;
 }
 
-function tsToDateString(ts) {
-  return DateTime.fromSeconds(parseFloat(ts)).toFormat(DATE_FORMAT);
+function tsToDateString(ts, dateFormat) {
+  return DateTime.fromSeconds(parseFloat(ts)).toFormat(dateFormat);
 }
 
-async function byDayAndUser({ messages, users }) {
-  return Object.entries(users).map(([uid, name]) => {
+async function byPeriodAndUser(channel, messages, users) {
+  const periods = new Array(channel.numPeriods)
+    .fill(null)
+    .map((_, i) => DateTime.now().setZone('Pacific/Auckland').minus(channel.dateFunc(i)).toFormat(channel.dateFormat));
+
+  return users.map(([uid, name]) => {
     const userMessages = messages.filter(message => message.user === uid);
-    const userWeeks = weeks.map(d => {
-      return userMessages.find(m => tsToDateString(m.ts) === d && m.emojis.length === 5)
+
+    const userPeriods = periods.map(p => {
+      return userMessages.find(m => tsToDateString(m.ts, channel.dateFormat) === p)
     });
 
-    if (userWeeks.every(d => !d)) { return null; }
+    if (userPeriods.every(d => !d)) { return null; }
 
-    return { name, weeks: userWeeks };
+    return { name, periods: userPeriods };
   }).filter(Boolean);
 }
 
-module.exports = getMessages(CHANNEL).then(byDayAndUser);
+module.exports = async function process() {
+  const users = await getUsers();
+
+  const channelData = await Promise.all(CHANNELS.map(async channel => {
+    const messages = await getMessages(channel);
+    const processedMessages = await byPeriodAndUser(channel, messages, users);
+
+    return {
+      ...channel,
+      userPeriods: processedMessages,
+    };
+  }));
+
+  return channelData;
+}

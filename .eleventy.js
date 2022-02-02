@@ -8,6 +8,7 @@ emojiConvertor.allow_native = true;
 
 module.exports = function(eleventyConfig) {
   eleventyConfig.addPassthroughCopy('css');
+  eleventyConfig.addPassthroughCopy('_redirects');
 
   eleventyConfig.addFilter('debug', function(input) {
     return JSON.stringify(input, null, 2);
@@ -17,13 +18,30 @@ module.exports = function(eleventyConfig) {
     return DateTime.fromSeconds(parseFloat(input)).toFormat('dd LLL');
   });
 
+  eleventyConfig.addShortcode('dateFromPeriodNum', function(channel, input) {
+    return DateTime.now().setZone('Pacific/Auckland').minus(channel.dateFunc(input)).toFormat(channel.dateFormat);
+  });
+
   eleventyConfig.addShortcode('parseEmoji', function(emoji, input) {
     const bareName = input.replace(/:/g, '');
 
+    let urlOrUnicodeString;
+
     if (emoji[bareName]) {
-      return `<img class="emoji" src="${emoji[bareName]}" alt="${bareName}">`;
+      if (emoji[bareName].match(/^alias:/)) {
+        let alias = emoji[bareName].replace(/^alias:/, '');
+        urlOrUnicodeString = emoji[alias] ?? emojiConvertor.replace_colons(`:${alias}:`)
+      } else {
+        urlOrUnicodeString = emoji[bareName];
+      }
     } else {
-      return emojiConvertor.replace_colons(input)
+      urlOrUnicodeString = emojiConvertor.replace_colons(input);
+    }
+
+    if (urlOrUnicodeString.match(/^http/)) {
+      return `<img class="emoji" src="${urlOrUnicodeString}" alt="${bareName}">`;
+    } else {
+      return urlOrUnicodeString;
     }
   });
 }
