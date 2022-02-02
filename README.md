@@ -6,12 +6,13 @@ An art project / useless novelty: using the Slack API, we can get all the messag
 
 Then we show it all in a grid! Why? _Why not?_
 
+(There's also now a [#wordle version](https://sp-whereami.netlify.app/wordle/) of this.)
+
 If you want to build it yourself locally, just clone the repo and run `yarn dev`.
 
 You'll need the following environment variables set in a `.env` file:
 
 * `SLACK_TOKEN` — your Slack API token.
-* `SLACK_CHANNEL_ID` — The ID of the channel to read from.
 
 Your Slack user will need the following scopes:
 
