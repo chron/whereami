@@ -8,6 +8,7 @@ emojiConvertor.allow_native = true;
 
 module.exports = function(eleventyConfig) {
   eleventyConfig.addPassthroughCopy('css');
+  eleventyConfig.addPassthroughCopy('_redirects');
 
   eleventyConfig.addFilter('debug', function(input) {
     return JSON.stringify(input, null, 2);
@@ -15,6 +16,10 @@ module.exports = function(eleventyConfig) {
 
   eleventyConfig.addFilter('tsToDate', function(input) {
     return DateTime.fromSeconds(parseFloat(input)).toFormat('dd LLL');
+  });
+
+  eleventyConfig.addShortcode('dateFromPeriodNum', function(channel, input) {
+    return DateTime.now().setZone('Pacific/Auckland').minus(channel.dateFunc(input)).toFormat(channel.dateFormat);
   });
 
   eleventyConfig.addShortcode('parseEmoji', function(emoji, input) {
@@ -34,7 +39,7 @@ module.exports = function(eleventyConfig) {
     }
 
     if (urlOrUnicodeString.match(/^http/)) {
-      return `<img class="emoji" src="${srcUrl}" alt="${bareName}">`;
+      return `<img class="emoji" src="${urlOrUnicodeString}" alt="${bareName}">`;
     } else {
       return urlOrUnicodeString;
     }

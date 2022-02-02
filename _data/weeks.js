@@ -1,4 +1,0 @@
-const { DateTime } = require('luxon');
-const DATE_FORMAT = 'd LLL'; // TODO: Dry that
-
-module.exports = [5,4,3,2,1,0].map(delta => DateTime.now().setZone('Pacific/Auckland').minus({ days: delta }).toFormat(DATE_FORMAT));
