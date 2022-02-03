@@ -12,7 +12,7 @@ function prevWorkingDay(d) {
 
 module.exports = [
   {
-    name: '#where-am-i',
+    name: 'where-am-i',
     slackChannelId: 'C01VD3VJYDA',
     dateFormat: 'W',
     datePrefix: 'Week ',
@@ -21,7 +21,7 @@ module.exports = [
     numPeriods: 6,
   },
   {
-    name: '#wordle',
+    name: 'wordle',
     slackChannelId: 'C02UJRCQG4A',
     dateFormat: 'd LLL',
     datePrefix: '',
@@ -31,7 +31,7 @@ module.exports = [
     emojiFilter: e => e.match(/square/)
   },
   {
-    name: '#cooldown',
+    name: 'cooldown',
     slackChannelId: 'C014WH4P25N',
     dateFormat: 'd LLL',
     datePrefix: '',
