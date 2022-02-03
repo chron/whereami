@@ -2,6 +2,10 @@ const { DateTime } = require('luxon');
 var EmojiConvertor = require('emoji-js');
 require('dotenv').config();
 
+MANUAL_REPLACEMENTS = {
+  ':dance:': '💃🏻',
+}
+
 var emojiConvertor = new EmojiConvertor();
 emojiConvertor.replace_mode = 'unified';
 emojiConvertor.allow_native = true;
@@ -19,7 +23,7 @@ module.exports = function(eleventyConfig) {
   });
 
   eleventyConfig.addShortcode('dateFromPeriodNum', function(channel, input) {
-    return DateTime.now().setZone('Pacific/Auckland').minus(channel.dateFunc(input)).toFormat(channel.dateFormat);
+    return channel.dateFunc(input).toFormat(channel.dateFormat);
   });
 
   eleventyConfig.addShortcode('parseEmoji', function(emoji, input) {
@@ -38,8 +42,12 @@ module.exports = function(eleventyConfig) {
       urlOrUnicodeString = emojiConvertor.replace_colons(input);
     }
 
+
+
     if (urlOrUnicodeString.match(/^http/)) {
       return `<img class="emoji" src="${urlOrUnicodeString}" alt="${bareName}">`;
+    } else if (urlOrUnicodeString.match(/^:.*:$/)) {
+      return MANUAL_REPLACEMENTS[urlOrUnicodeString] ?? urlOrUnicodeString;
     } else {
       return urlOrUnicodeString;
     }

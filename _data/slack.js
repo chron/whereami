@@ -31,7 +31,7 @@ async function getMessages(channel) {
 
   for await (const page of web.paginate('conversations.history', {
     channel: channel.slackChannelId,
-    oldest: DateTime.now().setZone('Pacific/Auckland').minus(channel.dateFunc(channel.numPeriods)).toSeconds(),
+    oldest: channel.dateFunc(channel.numPeriods).toSeconds(),
     limit: 100 // per page
   })) {
     messages.push(...page.messages.filter(message => {
@@ -63,7 +63,7 @@ function tsToDateString(ts, dateFormat) {
 async function byPeriodAndUser(channel, messages, users) {
   const periods = new Array(channel.numPeriods)
     .fill(null)
-    .map((_, i) => DateTime.now().setZone('Pacific/Auckland').minus(channel.dateFunc(i)).toFormat(channel.dateFormat));
+    .map((_, i) => channel.dateFunc(i).toFormat(channel.dateFormat));
 
   return users.map(([uid, name]) => {
     const userMessages = messages.filter(message => message.user === uid);
