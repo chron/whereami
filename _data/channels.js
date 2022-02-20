@@ -27,7 +27,7 @@ module.exports = [
     datePrefix: '',
     dateFunc: (delta) => DateTime.now().setZone('Pacific/Auckland').minus({ days: delta }),
     numPeriods: 10,
-    messageFilter: m => m.emojis.length >= 5,
+    messageFilter: m => m.emojis.length >= 5 && m.emojis.length <= 30, // Quordle be wildin
     emojiFilter: e => e.match(/square/)
   },
   {
